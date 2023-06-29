@@ -1,20 +1,37 @@
-name: cicd test
-on: [push]
+name: CICD Test
+
+on: [push, fork]
+
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Release
 
 jobs:
   build_and_test:
-    runs-on: macos-12
+    runs-on: ${{ matrix.os }}
     strategy:
-        matrix:
-            name: ["MacOSX/Static/X64/Debug", "MacOSX/Static/X64/Release"]
-            os: [macos-10.15]
-            config: [Debug, Release]
-            args: [""]
+      matrix:
+        os: [windows-latest, macOS-latest]
+
     steps:
       - uses: actions/checkout@v2
-      - name: Run a one-line script
-        run: echo Hello, world!
-      - name: Run a multi-line script
+
+      - name: Setup Environment Variables
+        shell: bash
         run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+          VERSION=$(cat VERSION)
+          echo "ARTIFACTS_PATH=${{ env.BUILD_DIR }}/${{ env.PROJECT_NAME }}_artefacts/${{ env.BUILD_TYPE }}" >> $GITHUB_ENV
+          echo "STANDALONE_PATH=${{ env.PROJECT_NAME }}_artefacts/${{ env.BUILD_TYPE }}/STANDALONE/${{ env.PROJECT_NAME }}.app" >> $GITHUB_ENV
+          echo "PRODUCT_NAME=${{ env.PROJECT_NAME }}-$VERSION-${{ matrix.name }}" >> $GITHUB_ENV
+
+      - name: Configure
+        shell: bash
+        run: cmake -B ${{ env.BUILD_DIR }} -G Ninja -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE}} -DCMAKE_C_COMPILER_LAUNCHER=${{ matrix.ccache }} -DCMAKE_CXX_COMPILER_LAUNCHER=${{ matrix.ccache }} -DCMAKE_OSX_ARCHITECTURES="x86_64" .
+
+      - name: Build
+        shell: bash
+        run: cmake --build ${{ env.BUILD_DIR }} --config ${{ env.BUILD_TYPE }} --parallel 4
+
+      - name: Test
+        working-directory: ${{ env.BUILD_DIR }}
+        run: ctest --output-on-failure -j4 -VV
