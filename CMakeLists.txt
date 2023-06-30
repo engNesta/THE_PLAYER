@@ -45,7 +45,7 @@ target_link_libraries(THE_PLAYER
 
 option(BUILD_UNIT_TESTS "Build JUCE prototype examples" ON)
 
-#if (BUILD_UNIT_TESTS)
-#    enable_testing()
-#    add_subdirectory(Tests)
-#endif()
+if (BUILD_UNIT_TESTS)
+    enable_testing()
+    add_subdirectory(Tests)
+endif()
