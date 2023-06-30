@@ -10,7 +10,19 @@
 #include "Catch2/src/catch2/catch_test_macros.hpp"
 //REMEMBER TO CALL THE JUCE NAMESPACE WHEN USING JUCE CLASSES
 
-TEST_CASE("Suite implemented")
+TEST_CASE("Test Input & Output audio processing")
 {
     MainComponent mainComponent;
+
+    constexpr int numSamples = 512;
+    constexpr int numChannels = 2;
+
+    juce::AudioBuffer<float> inputBuffer(numChannels, numSamples);
+    juce::AudioBuffer<float> outputBuffer(numChannels, numSamples);
+
+    juce::AudioSourceChannelInfo inputBufferInfo(&inputBuffer, 0, numSamples);
+
+
+
+
 }
