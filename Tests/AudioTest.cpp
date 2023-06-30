@@ -20,9 +20,22 @@ TEST_CASE("Test Input & Output audio processing")
     juce::AudioBuffer<float> inputBuffer(numChannels, numSamples);
     juce::AudioBuffer<float> outputBuffer(numChannels, numSamples);
 
-    juce::AudioSourceChannelInfo inputBufferInfo(&inputBuffer, 0, numSamples);
+    juce::AudioSourceChannelInfo bufferInfo(&inputBuffer, 0, numSamples);
 
 
+
+    mainComponent.getNextAudioBlock(bufferInfo);
+
+    for (int channel = 0; channel < numChannels; ++channel)
+    {
+        const float* inputChannel = inputBuffer.getReadPointer(channel);
+        const float* outputChannel = bufferInfo.buffer->getReadPointer(channel);
+
+        for (int sample = 0; sample < numSamples; ++sample)
+        {
+            REQUIRE(inputChannel[sample] == (outputChannel[sample]));
+        }
+    }
 
 
 }

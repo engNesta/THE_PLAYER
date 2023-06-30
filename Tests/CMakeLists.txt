@@ -34,4 +34,12 @@ target_link_libraries(The_Player_Test PRIVATE
         juce::juce_audio_basics
         juce::juce_gui_basics
         juce::juce_graphics
-        juce::juce_audio_processors)
+        juce::juce_audio_processors
+        juce::juce_audio_devices
+        juce::juce_audio_formats
+        juce::juce_core
+        juce::juce_data_structures
+        juce::juce_dsp
+        juce::juce_events
+        juce::juce_gui_extra
+        juce::juce_audio_utils)
