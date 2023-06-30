@@ -40,37 +40,6 @@ MainComponent::~MainComponent()
 }
 
 //==============================================================================
-void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRate)
-{
-    // This function will be called when the audio device is started, or when
-    // its settings (i.e. sample rate, block size, etc) are changed.
-
-    // You can use this function to initialise any resources you might need,
-    // but be careful - it will be called on the audio thread, not the GUI thread.
-
-    // For more details, see the help for AudioProcessor::prepareToPlay()
-}
-
-void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferToFill)
-{
-    // Your audio-processing code goes here!
-
-    // For more details, see the help for AudioProcessor::getNextAudioBlock()
-
-    // Right now we are not producing any data, in which case we need to clear the buffer
-    // (to prevent the output of random noise)
-    bufferToFill.clearActiveBufferRegion();
-}
-
-void MainComponent::releaseResources()
-{
-    // This will be called when the audio device stops, or when it is being
-    // restarted due to a setting change.
-
-    // For more details, see the help for AudioProcessor::releaseResources()
-}
-
-//==============================================================================
 void MainComponent::paint (juce::Graphics& g)
 {
 // (Our component is opaque, so we must completely fill the background with a solid colour)
@@ -82,7 +51,7 @@ void MainComponent::paint (juce::Graphics& g)
     g.setColour (offWhite);
 
     g.drawLine(150, 0, 155, 600);
-    g.drawLine(450, 0, 455, 600);
+    g.drawLine(440, 0, 455, 600);
 }
 
 void MainComponent::resized()
@@ -159,6 +128,9 @@ void MainComponent::hostVST3(juce::File &file)
     if(vst3Instance != nullptr)
     {
         createEditor(*vst3Instance);
+        vst3Instance->prepareToPlay(44100.0, 512);
+
+
     }
     else
     {
@@ -175,10 +147,66 @@ void MainComponent::createEditor(AudioPluginInstance& pluginInstance)
     {
 
         addAndMakeVisible(vstEditor);
-        vstEditor->setBounds(70, 20, 300, 200);
+        vstEditor->setBounds(150, 50, 300, 200);
+
     }
     else
     {
         infoLabel.setText("Failed to obtain AudioProcessor", juce::dontSendNotification);
     }
+}
+
+//==============================================================================
+void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRate)
+{
+    // This function will be called when the audio device is started, or when
+    // its settings (i.e. sample rate, block size, etc) are changed.
+
+    // You can use this function to initialise any resources you might need,
+    // but be careful - it will be called on the audio thread, not the GUI thread.
+
+    // For more details, see the help for AudioProcessor::prepareToPlay()
+}
+
+void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill)
+{
+    if (vst3Instance != nullptr)
+    {
+        // Process the audio through the VST3 plugin
+        juce::AudioBuffer<float> vstBuffer(bufferToFill.buffer->getNumChannels(), bufferToFill.numSamples);
+        vstBuffer.clear();
+
+        juce::MidiBuffer midiBuffer;  // Create an empty MIDI buffer
+
+        vst3Instance->processBlock(vstBuffer, midiBuffer);  // Process the audio through the VST3 plugin
+
+        // Copy the processed audio to the output buffer
+        for (int channel = 0; channel < bufferToFill.buffer->getNumChannels(); ++channel)
+        {
+            bufferToFill.buffer->copyFrom(channel, bufferToFill.startSample, vstBuffer.getReadPointer(channel), vstBuffer.getNumSamples());
+        }
+    }
+    else
+    {
+        // Bypass audio processing
+        for (int channel = 0; channel < bufferToFill.buffer->getNumChannels(); ++channel)
+        {
+            auto* inputBuffer = bufferToFill.buffer->getReadPointer(channel);
+            auto* outputBuffer = bufferToFill.buffer->getWritePointer(channel);
+
+            for (auto sample = 0; sample < bufferToFill.numSamples; ++sample)
+            {
+                outputBuffer[sample] = inputBuffer[sample];
+            }
+        }
+    }
+}
+
+
+void MainComponent::releaseResources()
+{
+    // This will be called when the audio device stops, or when it is being
+    // restarted due to a setting change.
+
+    // For more details, see the help for AudioProcessor::releaseResources()
 }
