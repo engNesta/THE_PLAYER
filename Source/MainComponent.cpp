@@ -77,6 +77,8 @@ void MainComponent::resized()
     infoLabel.setBounds(170, 500, 400, 50);
     midiDeviceComboBox.setBounds(175, 10, 150, 20);
 }
+
+
 void MainComponent::comboBoxChanged(juce::ComboBox* comboBox)
 {
     if (comboBox == &midiDeviceComboBox)
@@ -86,7 +88,16 @@ void MainComponent::comboBoxChanged(juce::ComboBox* comboBox)
         {
             // Handle the selected MIDI device here
             const auto& selectedDeviceName = juce::MidiInput::getAvailableDevices()[selectedDeviceIndex];
-            // Do whatever you need with the selected MIDI device
+
+            juce::MidiInput* retrievedMidiInput;
+
+            //retrievedMidiInput = juce::MidiInput::openDevice(selectedDeviceIndex, this);
+
+            if (retrievedMidiInput != nullptr)
+            {
+                // Start MIDI input
+                retrievedMidiInput->start();
+            }
         }
     }
 }
@@ -230,14 +241,28 @@ void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& buffer
     }
 }
 
-
-
-
-
 void MainComponent::releaseResources()
 {
     // This will be called when the audio device stops, or when it is being
     // restarted due to a setting change.
 
     // For more details, see the help for AudioProcessor::releaseResources()
+}
+
+//==============================================================================
+void MyMidiInputCallback::handleIncomingMidiMessage(juce::MidiInput* source, const juce::MidiMessage& message)
+{
+    // Process the incoming MIDI message here
+    // You can access the MIDI message data using the 'message' object
+
+    // Example: Print the MIDI message information
+    juce::String midiMessageString = message.getDescription();
+    juce::Logger::writeToLog("Received MIDI message: " + midiMessageString);
+
+// Example: Extract note number from the MIDI message
+    if (message.isNoteOn())
+    {
+    int noteNumber = message.getNoteNumber();
+    juce::Logger::writeToLog("Note On, Note Number: " + juce::String(noteNumber));
+    }
 }

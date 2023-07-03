@@ -7,6 +7,13 @@
     This component lives inside our window, and this is where you should put all
     your controls and content.
 */
+
+class MyMidiInputCallback : public juce::MidiInputCallback
+{
+public:
+    void handleIncomingMidiMessage(juce::MidiInput* source, const juce::MidiMessage& message) override;
+};
+
 class MainComponent  : public juce::AudioAppComponent, public juce::Button::Listener, public juce::ComboBox::Listener
 {
 public:
@@ -18,6 +25,7 @@ public:
     void prepareToPlay (int samplesPerBlockExpected, double sampleRate) override;
     void getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill) override;
     void releaseResources() override;
+
 
 
     //==============================================================================
@@ -48,6 +56,13 @@ private:
     std::unique_ptr<juce::FileChooser> fileChooser;
     juce::AudioPluginFormatManager formatManager;
     PluginDescription vst3Description;
+    juce::MidiInput midiInput;
+    MyMidiInputCallback midiInputCallback;
+
+
+
+
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };
+
