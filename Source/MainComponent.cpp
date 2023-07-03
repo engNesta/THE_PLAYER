@@ -18,6 +18,13 @@ MainComponent::MainComponent()
         setAudioChannels (2, 2);
     }
 
+    const auto midiInputNames = juce::MidiInput::getAvailableDevices();
+    for (const auto& deviceInfo : midiInputNames)
+    {
+        midiDeviceComboBox.addItem(deviceInfo.name, midiInputNames.indexOf(deviceInfo) + 1);
+    }
+
+
     loadButton.setButtonText("LOAD VST3 PLUGIN");
 
     loadButton.setColour(juce::TextButton::buttonColourId, juce::Colour::fromRGB(250, 249, 246));
@@ -25,11 +32,15 @@ MainComponent::MainComponent()
     loadButton.setColour(juce::TextButton::textColourOffId, juce::Colour::fromRGB(18, 18, 18));
 
     loadButton.addListener(this);
+    midiDeviceComboBox.addListener(this);
+
 
     infoLabel.setText("VST3 LOADER", juce::dontSendNotification);
     infoLabel.setColour(juce::Label::textColourId, juce::Colour::fromRGB(250, 249, 246));
     addAndMakeVisible(infoLabel);
     addAndMakeVisible(loadButton);
+    addAndMakeVisible(midiDeviceComboBox);
+
 
 }
 
@@ -62,7 +73,22 @@ void MainComponent::resized()
 
     loadButton.setBounds(175 , 275, 240, 50);
     infoLabel.setBounds(170, 500, 400, 50);
+    midiDeviceComboBox.setBounds(175, 50, 150, 20);
 }
+void MainComponent::comboBoxChanged(juce::ComboBox* comboBox)
+{
+    if (comboBox == &midiDeviceComboBox)
+    {
+        const int selectedDeviceIndex = midiDeviceComboBox.getSelectedId() - 1;
+        if (selectedDeviceIndex >= 0 && selectedDeviceIndex < juce::MidiInput::getAvailableDevices().size())
+        {
+            // Handle the selected MIDI device here
+            const auto& selectedDeviceName = juce::MidiInput::getAvailableDevices()[selectedDeviceIndex];
+            // Do whatever you need with the selected MIDI device
+        }
+    }
+}
+
 
 void MainComponent::buttonClicked(juce::Button *button){
     if (button == &loadButton)
@@ -201,6 +227,9 @@ void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& buffer
         }
     }
 }
+
+
+
 
 
 void MainComponent::releaseResources()

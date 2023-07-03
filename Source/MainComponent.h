@@ -7,7 +7,7 @@
     This component lives inside our window, and this is where you should put all
     your controls and content.
 */
-class MainComponent  : public juce::AudioAppComponent, public juce::Button::Listener
+class MainComponent  : public juce::AudioAppComponent, public juce::Button::Listener, public juce::ComboBox::Listener
 {
 public:
     //==============================================================================
@@ -16,13 +16,18 @@ public:
 
     //==============================================================================
     void prepareToPlay (int samplesPerBlockExpected, double sampleRate) override;
-    void getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferToFill) override;
+    void getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill);
     void releaseResources() override;
+
+
 
     //==============================================================================
 
     juce::TextButton loadButton;
     juce::Label infoLabel;
+    juce::ComboBox midiDeviceComboBox;
+
+
 
     //==============================================================================
     void paint (juce::Graphics&) override;
@@ -33,6 +38,7 @@ public:
     void hostVST3(juce::File &file);
     void createEditor(AudioPluginInstance& pluginInstance);
     std::unique_ptr<AudioPluginInstance> vst3Instance;
+    void comboBoxChanged(juce::ComboBox* comboBox) override;
 
 
 private:
