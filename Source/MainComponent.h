@@ -16,9 +16,8 @@ public:
 
     //==============================================================================
     void prepareToPlay (int samplesPerBlockExpected, double sampleRate) override;
-    void getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill);
+    void getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill) override;
     void releaseResources() override;
-
 
 
     //==============================================================================
@@ -26,6 +25,8 @@ public:
     juce::TextButton loadButton;
     juce::Label infoLabel;
     juce::ComboBox midiDeviceComboBox;
+
+
 
 
 

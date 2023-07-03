@@ -10,12 +10,12 @@ MainComponent::MainComponent()
         && ! juce::RuntimePermissions::isGranted (juce::RuntimePermissions::recordAudio))
     {
         juce::RuntimePermissions::request (juce::RuntimePermissions::recordAudio,
-                                           [&] (bool granted) { setAudioChannels (granted ? 2 : 0, 2); });
+                                           [&] (bool granted) { setAudioChannels ( 0, 2); });
     }
     else
     {
         // Specify the number of input and output channels that we want to open
-        setAudioChannels (2, 2);
+        setAudioChannels (0, 2);
     }
 
     const auto midiInputNames = juce::MidiInput::getAvailableDevices();
@@ -40,6 +40,8 @@ MainComponent::MainComponent()
     addAndMakeVisible(infoLabel);
     addAndMakeVisible(loadButton);
     addAndMakeVisible(midiDeviceComboBox);
+
+
 
 
 }
@@ -73,7 +75,7 @@ void MainComponent::resized()
 
     loadButton.setBounds(175 , 275, 240, 50);
     infoLabel.setBounds(170, 500, 400, 50);
-    midiDeviceComboBox.setBounds(175, 50, 150, 20);
+    midiDeviceComboBox.setBounds(175, 10, 150, 20);
 }
 void MainComponent::comboBoxChanged(juce::ComboBox* comboBox)
 {
