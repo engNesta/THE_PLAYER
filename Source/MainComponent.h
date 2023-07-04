@@ -11,10 +11,10 @@
 class MyMidiInputCallback : public juce::MidiInputCallback
 {
 public:
-    void handleIncomingMidiMessage(juce::MidiInput* source, const juce::MidiMessage& message) override;
+
 };
 
-class MainComponent  : public juce::AudioAppComponent, public juce::Button::Listener, public juce::ComboBox::Listener
+class MainComponent  : public juce::AudioAppComponent, public juce::Button::Listener, public juce::ComboBox::Listener, public MyMidiInputCallback
 {
 public:
     //==============================================================================
@@ -34,10 +34,6 @@ public:
     juce::Label infoLabel;
     juce::ComboBox midiDeviceComboBox;
 
-
-
-
-
     //==============================================================================
     void paint (juce::Graphics&) override;
     void resized() override;
@@ -48,6 +44,7 @@ public:
     void createEditor(AudioPluginInstance& pluginInstance);
     std::unique_ptr<AudioPluginInstance> vst3Instance;
     void comboBoxChanged(juce::ComboBox* comboBox) override;
+    void handleIncomingMidiMessage(juce::MidiInput* source, const juce::MidiMessage& message) override;
 
 
 private:
@@ -56,8 +53,10 @@ private:
     std::unique_ptr<juce::FileChooser> fileChooser;
     juce::AudioPluginFormatManager formatManager;
     PluginDescription vst3Description;
-    juce::MidiInput midiInput;
-    MyMidiInputCallback midiInputCallback;
+    std::unique_ptr<juce::MidiInput> retrievedMidiInput;
+
+
+
 
 
 

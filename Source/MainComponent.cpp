@@ -89,15 +89,14 @@ void MainComponent::comboBoxChanged(juce::ComboBox* comboBox)
             // Handle the selected MIDI device here
             const auto& selectedDeviceName = juce::MidiInput::getAvailableDevices()[selectedDeviceIndex];
 
-            juce::MidiInput* retrievedMidiInput;
-
-            //retrievedMidiInput = juce::MidiInput::openDevice(selectedDeviceIndex, this);
+            retrievedMidiInput = juce::MidiInput::openDevice(selectedDeviceIndex, this); //Why are deprecated functions still in the API?
 
             if (retrievedMidiInput != nullptr)
             {
-                // Start MIDI input
                 retrievedMidiInput->start();
             }
+
+
         }
     }
 }
@@ -250,11 +249,10 @@ void MainComponent::releaseResources()
 }
 
 //==============================================================================
-void MyMidiInputCallback::handleIncomingMidiMessage(juce::MidiInput* source, const juce::MidiMessage& message)
+void MainComponent::handleIncomingMidiMessage(juce::MidiInput* source, const juce::MidiMessage& message)
 {
     // Process the incoming MIDI message here
     // You can access the MIDI message data using the 'message' object
-
     // Example: Print the MIDI message information
     juce::String midiMessageString = message.getDescription();
     juce::Logger::writeToLog("Received MIDI message: " + midiMessageString);
@@ -262,7 +260,14 @@ void MyMidiInputCallback::handleIncomingMidiMessage(juce::MidiInput* source, con
 // Example: Extract note number from the MIDI message
     if (message.isNoteOn())
     {
-    int noteNumber = message.getNoteNumber();
-    juce::Logger::writeToLog("Note On, Note Number: " + juce::String(noteNumber));
+        int noteNumber = message.getNoteNumber();
+        juce::Logger::writeToLog("Note On, Note Number: " + juce::String(noteNumber));
+
+        if(vst3Instance != nullptr)
+        {
+            juce::MidiBuffer midiBuffer;
+            midiBuffer.addEvent(message, 0);
+
+        }
     }
 }
