@@ -37,6 +37,7 @@ MainComponent::MainComponent()
 
     infoLabel.setText("VST3 LOADER", juce::dontSendNotification);
     infoLabel.setColour(juce::Label::textColourId, juce::Colour::fromRGB(250, 249, 246));
+
     addAndMakeVisible(infoLabel);
     addAndMakeVisible(loadButton);
     addAndMakeVisible(midiDeviceComboBox);
@@ -74,7 +75,7 @@ void MainComponent::resized()
     // update their positions.
 
     loadButton.setBounds(175 , 275, 240, 50);
-    infoLabel.setBounds(170, 500, 400, 50);
+    infoLabel.setBounds(230, 330, 400, 50);
     midiDeviceComboBox.setBounds(175, 10, 150, 20);
 }
 
@@ -89,11 +90,18 @@ void MainComponent::comboBoxChanged(juce::ComboBox* comboBox)
             // Handle the selected MIDI device here
             const auto& selectedDeviceName = juce::MidiInput::getAvailableDevices()[selectedDeviceIndex];
 
-            retrievedMidiInput = juce::MidiInput::openDevice(selectedDeviceIndex, this); //Why are deprecated functions still in the API?
+            retrievedMidiInput = juce::MidiInput::openDevice(juce::String(selectedDeviceIndex), this);
+
+            auto deviceName = juce::String(selectedDeviceName.name);
+
+            infoLabel.setText("MIDI DEVICE: " + deviceName, juce::dontSendNotification);
+
+
 
             if (retrievedMidiInput != nullptr)
             {
                 retrievedMidiInput->start();
+
             }
 
 
@@ -262,12 +270,5 @@ void MainComponent::handleIncomingMidiMessage(juce::MidiInput* source, const juc
     {
         int noteNumber = message.getNoteNumber();
         juce::Logger::writeToLog("Note On, Note Number: " + juce::String(noteNumber));
-
-        if(vst3Instance != nullptr)
-        {
-            juce::MidiBuffer midiBuffer;
-            midiBuffer.addEvent(message, 0);
-
-        }
     }
 }
