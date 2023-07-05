@@ -90,21 +90,15 @@ void MainComponent::comboBoxChanged(juce::ComboBox* comboBox)
             // Handle the selected MIDI device here
             const auto& selectedDeviceName = juce::MidiInput::getAvailableDevices()[selectedDeviceIndex];
 
-            retrievedMidiInput = juce::MidiInput::openDevice(juce::String(selectedDeviceIndex), this);
+            //auto indexTest = juce::String(selectedDeviceIndex);
+            //infoLabel.setText(indexTest, juce::dontSendNotification);
 
-            auto deviceName = juce::String(selectedDeviceName.name);
-
-            infoLabel.setText("MIDI DEVICE: " + deviceName, juce::dontSendNotification);
-
-
+            retrievedMidiInput = juce::MidiInput::openDevice(juce::String(selectedDeviceName.identifier), this);
 
             if (retrievedMidiInput != nullptr)
             {
                 retrievedMidiInput->start();
-
             }
-
-
         }
     }
 }
@@ -269,6 +263,7 @@ void MainComponent::handleIncomingMidiMessage(juce::MidiInput* source, const juc
     if (message.isNoteOn())
     {
         int noteNumber = message.getNoteNumber();
+        infoLabel.setText("Note On, Note Number: " + juce::String(noteNumber), juce::dontSendNotification);
         juce::Logger::writeToLog("Note On, Note Number: " + juce::String(noteNumber));
     }
 }
