@@ -42,6 +42,7 @@ MainComponent::MainComponent()
     addAndMakeVisible(loadButton);
     addAndMakeVisible(midiDeviceComboBox);
 
+    midiMessageCollector.reset(44100.0); // Specify the sample rate of your audio
 
 
 
@@ -89,9 +90,6 @@ void MainComponent::comboBoxChanged(juce::ComboBox* comboBox)
         {
             // Handle the selected MIDI device here
             const auto& selectedDeviceName = juce::MidiInput::getAvailableDevices()[selectedDeviceIndex];
-
-            //auto indexTest = juce::String(selectedDeviceIndex);
-            //infoLabel.setText(indexTest, juce::dontSendNotification);
 
             retrievedMidiInput = juce::MidiInput::openDevice(juce::String(selectedDeviceName.identifier), this);
 
@@ -208,6 +206,24 @@ void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRat
     // For more details, see the help for AudioProcessor::prepareToPlay()
 }
 
+void MainComponent::handleIncomingMidiMessage(juce::MidiInput* source, const juce::MidiMessage& message)
+{
+    // Process the incoming MIDI message here
+    // You can access the MIDI message data using the 'message' object
+    // Example: Print the MIDI message information
+    juce::String midiMessageString = message.getDescription();
+    juce::Logger::writeToLog("Received MIDI message: " + midiMessageString);
+    midiMessageCollector.addMessageToQueue(message);
+
+// Example: Extract note number from the MIDI message
+    if (message.isNoteOn())
+    {
+        int noteNumber = message.getNoteNumber();
+        infoLabel.setText("Note On, Note Number: " + juce::String(noteNumber), juce::dontSendNotification);
+        juce::Logger::writeToLog("Note On, Note Number: " + juce::String(noteNumber));
+    }
+}
+
 void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill)
 {
     if (vst3Instance != nullptr)
@@ -217,6 +233,7 @@ void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& buffer
         vstBuffer.clear();
 
         juce::MidiBuffer midiBuffer;  // Create an empty MIDI buffer
+        midiMessageCollector.removeNextBlockOfMessages(midiBuffer, bufferToFill.numSamples);
 
         vst3Instance->processBlock(vstBuffer, midiBuffer);  // Process the audio through the VST3 plugin
 
@@ -251,19 +268,3 @@ void MainComponent::releaseResources()
 }
 
 //==============================================================================
-void MainComponent::handleIncomingMidiMessage(juce::MidiInput* source, const juce::MidiMessage& message)
-{
-    // Process the incoming MIDI message here
-    // You can access the MIDI message data using the 'message' object
-    // Example: Print the MIDI message information
-    juce::String midiMessageString = message.getDescription();
-    juce::Logger::writeToLog("Received MIDI message: " + midiMessageString);
-
-// Example: Extract note number from the MIDI message
-    if (message.isNoteOn())
-    {
-        int noteNumber = message.getNoteNumber();
-        infoLabel.setText("Note On, Note Number: " + juce::String(noteNumber), juce::dontSendNotification);
-        juce::Logger::writeToLog("Note On, Note Number: " + juce::String(noteNumber));
-    }
-}

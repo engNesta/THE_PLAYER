@@ -54,6 +54,7 @@ private:
     juce::AudioPluginFormatManager formatManager;
     PluginDescription vst3Description;
     std::unique_ptr<juce::MidiInput> retrievedMidiInput;
+    juce::MidiMessageCollector midiMessageCollector;
 
 
 
