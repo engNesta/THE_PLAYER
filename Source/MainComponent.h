@@ -31,6 +31,7 @@ public:
     //==============================================================================
 
     juce::TextButton loadButton;
+    juce::TextButton unloadButton;
     juce::Label infoLabel;
     juce::ComboBox midiDeviceComboBox;
 
@@ -42,7 +43,7 @@ public:
     void retrieveVST3data(juce::File &file);
     void hostVST3(juce::File &file);
     void createEditor(AudioPluginInstance& pluginInstance);
-    std::unique_ptr<AudioPluginInstance> vst3Instance;
+    void unloadVst3();
     void comboBoxChanged(juce::ComboBox* comboBox) override;
     void handleIncomingMidiMessage(juce::MidiInput* source, const juce::MidiMessage& message) override;
 
@@ -55,6 +56,10 @@ private:
     PluginDescription vst3Description;
     std::unique_ptr<juce::MidiInput> retrievedMidiInput;
     juce::MidiMessageCollector midiMessageCollector;
+    std::unique_ptr<AudioPluginInstance> vst3Instance;
+    std::unique_ptr<juce::AudioProcessorEditor> vstEditor;
+    int numActivePluginInstances = 0;
+
 
 
 
