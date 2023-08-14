@@ -26,20 +26,15 @@ MainComponent::MainComponent()
 
 
     loadButton.setButtonText("LOAD VST3 PLUGIN");
-    unloadButton.setButtonText("UNLOAD VST3 PLUGIN");
 
     loadButton.setColour(juce::TextButton::buttonColourId, juce::Colour::fromRGB(250, 249, 246));
     loadButton.setColour(juce::TextButton::textColourOnId, juce::Colour::fromRGB(18, 18, 18));
     loadButton.setColour(juce::TextButton::textColourOffId, juce::Colour::fromRGB(18, 18, 18));
 
-    unloadButton.setColour(juce::TextButton::buttonColourId, juce::Colour::fromRGB(250, 249, 246));
-    unloadButton.setColour(juce::TextButton::textColourOnId, juce::Colour::fromRGB(18, 18, 18));
-    unloadButton.setColour(juce::TextButton::textColourOffId, juce::Colour::fromRGB(18, 18, 18));
 
 
 
     loadButton.addListener(this);
-    unloadButton.addListener(this);
     midiDeviceComboBox.addListener(this);
 
 
@@ -48,12 +43,11 @@ MainComponent::MainComponent()
 
     addAndMakeVisible(infoLabel);
     addAndMakeVisible(loadButton);
-    addAndMakeVisible(unloadButton);
     addAndMakeVisible(midiDeviceComboBox);
 
     midiMessageCollector.reset(44100.0); // Specify the sample rate of your audio
 
-
+    formatManager.addDefaultFormats();
 
 }
 
@@ -61,7 +55,7 @@ MainComponent::~MainComponent()
 {
     // This shuts down the audio device and clears the audio source.
     shutdownAudio();
-    unloadVst3();
+
 }
 
 //==============================================================================
@@ -73,10 +67,6 @@ void MainComponent::paint (juce::Graphics& g)
 
     g.fillAll (offBlack);
 
-    g.setColour (offWhite);
-
-    g.drawLine(150, 0, 155, 600);
-    g.drawLine(440, 0, 455, 600);
 }
 
 void MainComponent::resized()
@@ -86,7 +76,6 @@ void MainComponent::resized()
     // update their positions.
 
     loadButton.setBounds(175 , 275, 240, 50);
-    unloadButton.setBounds(450, 275, 80, 20);
     infoLabel.setBounds(230, 330, 400, 50);
     midiDeviceComboBox.setBounds(175, 10, 150, 20);
 }
@@ -121,10 +110,6 @@ void MainComponent::buttonClicked(juce::Button *button){
 
     }
 
-    else if(button == &unloadButton){
-        infoLabel.setText("Unloaded", juce::dontSendNotification);
-        unloadVst3();
-    }
 }
 
 void MainComponent::loadFile()
@@ -163,7 +148,7 @@ void MainComponent::retrieveVST3data(juce::File &file)
 
 void MainComponent::hostVST3(juce::File &file)
 {
-    formatManager.addDefaultFormats();
+
 
     OwnedArray<PluginDescription> typesFound;
 
@@ -171,6 +156,13 @@ void MainComponent::hostVST3(juce::File &file)
 
     KnownPluginList pluginList;
     pluginList.scanAndAddFile(vst3Description.fileOrIdentifier, true, typesFound, *format);
+
+    if (typesFound.isEmpty())
+    {
+        infoLabel.setText("No VST3 plugin found", juce::dontSendNotification);
+        return;
+    }
+
 
     infoLabel.setText(typesFound[0]->name, juce::dontSendNotification);
 
@@ -184,6 +176,11 @@ void MainComponent::hostVST3(juce::File &file)
     if(vst3Instance != nullptr)
     {
         vstEditor.reset(vst3Instance->createEditor());
+
+        if (vstEditor != nullptr) {
+            createEditor(*vst3Instance);
+        }
+
 
 
         vst3Instance->prepareToPlay(44100.0, 512);
@@ -200,14 +197,10 @@ void MainComponent::hostVST3(juce::File &file)
 
 void MainComponent::createEditor(AudioPluginInstance& pluginInstance)
 {
-    juce::AudioProcessorEditor* rawEditor = pluginInstance.createEditor();
-
     if (vstEditor != nullptr)
     {
-
-        vstEditor.reset(rawEditor);
         addAndMakeVisible(vstEditor.get());
-        vstEditor->setBounds(150, 50, 300, 200);
+        vstEditor->setBounds(0, 50, 300, 200);
 
     }
     else
@@ -217,33 +210,7 @@ void MainComponent::createEditor(AudioPluginInstance& pluginInstance)
 }
 
 
-void MainComponent::unloadVst3()
-{
-    if (vst3Instance != nullptr)
-    {
-        // Release resources and terminate the plugin
-        vst3Instance->releaseResources();
-        vst3Instance = nullptr;
 
-        // Remove the editor from the main component
-        if (vstEditor != nullptr)
-        {
-            removeChildComponent(vstEditor.get());
-            vstEditor = nullptr;
-        }
-
-        // Decrease the number of active plugin instances
-        --numActivePluginInstances;
-
-        // Update the info label or perform any other necessary tasks
-        infoLabel.setText("Plugin instances: " + juce::String(numActivePluginInstances), juce::dontSendNotification);
-    }
-    else
-    {
-        infoLabel.setText("No plugin instance to unload", juce::dontSendNotification);
-    }
-
-}
 
 //==============================================================================
 void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRate)

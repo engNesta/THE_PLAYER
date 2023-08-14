@@ -31,7 +31,6 @@ public:
     //==============================================================================
 
     juce::TextButton loadButton;
-    juce::TextButton unloadButton;
     juce::Label infoLabel;
     juce::ComboBox midiDeviceComboBox;
 
@@ -43,7 +42,6 @@ public:
     void retrieveVST3data(juce::File &file);
     void hostVST3(juce::File &file);
     void createEditor(AudioPluginInstance& pluginInstance);
-    void unloadVst3();
     void comboBoxChanged(juce::ComboBox* comboBox) override;
     void handleIncomingMidiMessage(juce::MidiInput* source, const juce::MidiMessage& message) override;
 
